@@ -45,7 +45,7 @@ void Scene::Update(float deltaTimeSec)
     if (g_Keyboard[VK_SPACE] == true) Models[0].ModelTransform.Pitch += deltaTimeSec;
 
     constexpr float rotateSpeed = 1.0f;
-    constexpr float movmentSpeed = 50.0f;
+    constexpr float movmentSpeed = 3.0f;
 
     if (g_Keyboard[VK_UP] == true) Cam.CameraTransform.Pitch += deltaTimeSec * rotateSpeed;
     if (g_Keyboard[VK_DOWN] == true) Cam.CameraTransform.Pitch -= deltaTimeSec * rotateSpeed;
@@ -58,6 +58,8 @@ void Scene::Update(float deltaTimeSec)
     if (g_Keyboard['A'] == true) Cam.MoveRight(-deltaTimeSec * movmentSpeed);       // minus to move left
     if (g_Keyboard[VK_SHIFT] == true) Cam.MoveUp(deltaTimeSec * movmentSpeed);
     if (g_Keyboard[VK_CONTROL] == true) Cam.MoveUp(-deltaTimeSec * movmentSpeed);   // minus to move left
+
+    if (g_Keyboard['B'] == true) Models[0].ModelTransform.Yaw += 0.1f;
 
 }
 
@@ -325,7 +327,7 @@ static int GetMTLMetaData(const std::string& mtlFilePath, std::string& bmpFileNa
     }
 }
 
-static int GetMTLData(const std::string& mtlFilePath, std::vector<glm::u8vec3>& texture)
+static int GetMTLData(const std::string& mtlFilePath, Texture& texture)
 {
 #pragma pack(push, 1) // no padding so the struct is exactly the size of the data in the file
 
@@ -374,14 +376,20 @@ static int GetMTLData(const std::string& mtlFilePath, std::vector<glm::u8vec3>& 
 	bmp.read((char*)&infoHeader, sizeof(infoHeader));
 	bmp.seekg(header.pixelDataOffset, std::ios::beg);
 
-	// read pixel data
-    texture.resize((header.sizeOfBitmapFile - header.pixelDataOffset) / 3);
-	bmp.read((char*)texture.data(), header.sizeOfBitmapFile - header.pixelDataOffset);
+	// Get Width and Height
+    texture.Width = infoHeader.width;
+	texture.Height = infoHeader.height;
 
-	// convert from BGR to RGB
-    for (size_t i = 0; i < texture.size(); i++)
+
+
+	// read pixel data
+	std::vector<glm::u8vec3> colorVec((header.sizeOfBitmapFile - header.pixelDataOffset) / 3);
+	bmp.read((char*)colorVec.data(), header.sizeOfBitmapFile - header.pixelDataOffset);
+
+    for (size_t i = 0; i < colorVec.size(); i++)
     {
-        std::swap(texture[i].r, texture[i].b);
+        // convert from BGR to RGB
+        texture.ColorVec.push_back({ colorVec[i].b, colorVec[i].g, colorVec[i].r, 255 });
 	}
 
 	return 0;
@@ -426,17 +434,11 @@ int32_t Scene::LoadModelObj(std::string objFilePath)
 	// Try to get a texture from the .mtl file
     std::string folderPath = GetFolderPath(objFilePath);
 	std::string mtlFilePath = folderPath + "/" + mtlFileName;
-    std::vector<glm::u8vec3> texture;
+    Texture texture(0, 0, std::vector<glm::u8vec4>());
+
     GetMTLData(mtlFilePath, texture);
 
-    if (texture.size() == 0)
-    {
-        Models.emplace_back(vertices, textureCoords, normals, triangleIndices, std::vector<glm::u8vec3>() );
-    }
-    else
-    {
-        Models.emplace_back(vertices, textureCoords, normals, triangleIndices, texture);
-    }
+    Models.emplace_back(vertices, textureCoords, normals, triangleIndices, texture);
    
     // return index of new Model
     return Models.size() - 1;

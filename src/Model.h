@@ -16,17 +16,21 @@ struct TVIndices
 class Texture
 {
 public:
-	Texture(uint32_t width, uint32_t height, std::vector<glm::u8vec4> Data)
-		: Width(width), Height(height), Data(Data)
+	Texture(uint32_t width, uint32_t height, std::vector<glm::u8vec4> ColorVec)
+		: Width(width), Height(height), ColorVec(ColorVec)
+	{
+	}
+
+	Texture(const Texture& copy)
+		: Width(copy.Width), Height(copy.Height), ColorVec(copy.ColorVec)
 	{
 	}
 
 	~Texture() {}
 
-
 	uint32_t Width;
 	uint32_t Height;
-	std::vector<glm::u8vec4> Data; // RGBA
+	std::vector<glm::u8vec4> ColorVec; // RGBA
 };
 
 class Model
@@ -36,11 +40,14 @@ public:
 		const std::vector<glm::vec2>& textureCoords,
 		const std::vector<glm::vec3>& normals,
 		const std::vector<TVIndices>& triangleIndices,
-		const std::vector<glm::u8vec3>& texture);
+		const Texture& texture);
 
 	Model(const Model& copy);
 
-	glm::vec3 GetPixelColor(const glm::vec2& texCoord) const;
+	bool HasTexture() const { return TextureCoords.size() > 0 && m_Texture.ColorVec.size() > 0; }
+	bool HasNormals() const { return Normals.size() > 0; }
+
+	Transform ModelTransform;
 
 	std::vector<glm::vec3> Vertices;
 	std::vector<glm::vec2> TextureCoords;
@@ -49,8 +56,7 @@ public:
 	std::vector<TVIndices> TriangleIndices;
 
 	std::vector<glm::vec3> TriangleColors;
-	std::vector<glm::u8vec3> Texture;
-
-	Transform ModelTransform;
+	Texture m_Texture;
+private:
 };
 

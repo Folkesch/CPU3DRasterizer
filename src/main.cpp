@@ -200,15 +200,26 @@ int main()
     Scene scene;
 
     //uint32_t monkeyIndex = scene.LoadModelObj("../../models/blender_monkey.obj");
-    int32_t cubeIndex = scene.LoadModelObj("../../models/cube.obj");
-    //int32_t cottageIndex = scene.LoadModelObj("../../models/85-cottage_obj/cottage_obj.obj");
+    //int32_t cubeIndex = scene.LoadModelObj("../../models/cube.obj");
+    int32_t cottageIndex = scene.LoadModelObj("../../models/85-cottage_obj/cottage_obj.obj");
     //int32_t dragonIndex = scene.LoadModelObj("../../models/SimpleDragon.obj");
 
     //scene.Models[monkeyIndex].ModelTransform.Position = { 0, -2.0f, 5.0f };
-    //scene.Models[cottageIndex].ModelTransform.Position = { 0, 0.0f, 100.0f };
+    scene.Models[cottageIndex].ModelTransform.Position = { 0, 0.0f, 100.0f };
     //scene.Models[monkeyIndex].ModelTransform.Yaw = 3.14f;
 
-    scene.Models[cubeIndex].ModelTransform.Position = { 0.0, 0.0f, 7.0f };
+    //scene.Models[cubeIndex].ModelTransform.Position = { 0.0, 0.0f, 7.0f };
+
+    std::vector<glm::vec3> colors(scene.Models[cottageIndex].m_Texture.ColorVec.size());
+
+    for (int i = 0; i < scene.Models[cottageIndex].m_Texture.ColorVec.size(); i++)
+    {
+        colors[i] = glm::vec3((float)scene.Models[cottageIndex].m_Texture.ColorVec[i].r / 255.0f,
+            (float)scene.Models[cottageIndex].m_Texture.ColorVec[i].g / 255.0f,
+            (float)scene.Models[cottageIndex].m_Texture.ColorVec[i].b / 255.0f);
+    }
+
+	writeImageToFile(colors.data(), "texture", scene.Models[cottageIndex].m_Texture.Width, scene.Models[cottageIndex].m_Texture.Height);
 
     Run(scene);
 

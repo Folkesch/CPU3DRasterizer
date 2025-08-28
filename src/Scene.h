@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "Transform.h"
+#include "Shader.h"
 
 class Camera
 {
@@ -32,7 +33,9 @@ class Scene
 {
 public:
 
-	Scene() { srand((uint32_t)time(NULL)); };
+	Scene()
+		: Cam(), Shader({ 1, 2, -3 })
+	{ srand((uint32_t)time(NULL)); };
 	~Scene() {};
 
 
@@ -43,6 +46,8 @@ public:
 
 	int32_t LoadModelObj(std::string objFilePath);
 
+
 	std::vector<Model> Models;
 	Camera Cam;
+	Shader Shader;
 };

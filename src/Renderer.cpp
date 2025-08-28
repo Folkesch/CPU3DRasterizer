@@ -53,38 +53,30 @@ void Renderer::Render(Scene& scene, RenderTarget& renderTarget)
                         if (depth > renderTarget.DepthBuffer[y * renderTarget.Width + x])
                             continue;
 
-                        if (model.TextureCoords.size() > 0 && model.Texture.size() > 0)
+                        glm::vec2 texCoord = { 0.0f, 0.0f };
+                        glm::vec3 normalDir = { 0.0f, 0.0f, 0.0f };
+
+                        if (model.HasTexture())
                         {
                             // interpolate texture coordinates with weights and 1/z (perspective correct interpolation (I don't know what that means))
-                            glm::vec2 texCoord = { 0.0f, 0.0f };
                             texCoord += model.TextureCoords[model.TriangleIndices[i + 0].textureCoordIdx] * weights.x / depths[0];
                             texCoord += model.TextureCoords[model.TriangleIndices[i + 1].textureCoordIdx] * weights.y / depths[1];
                             texCoord += model.TextureCoords[model.TriangleIndices[i + 2].textureCoordIdx] * weights.z / depths[2];
                             texCoord *= depth; // because of the 1/z interpolation (I don't know what that means)
-
-                            renderTarget.ColurBuff[y * renderTarget.Width + x] = model.GetPixelColor(texCoord);;
-                        }
-                        else
-                        {
-                            renderTarget.ColurBuff[y * renderTarget.Width + x] = model.TriangleColors[i / 3];
                         }
 
-                        /*if (model.Normals.size() != 0)
+                        if (model.HasNormals())
                         {
                             // interpolate normal vector with weights and 1/z (perspective correct interpolation (I don't know what that means))
-                            glm::vec3 normalDir = { 0.0f, 0.0f, 0.0f };
                             normalDir += model.Normals[model.TriangleIndices[i + 0].normalIdx] * weights.x / depths[0];
                             normalDir += model.Normals[model.TriangleIndices[i + 1].normalIdx] * weights.y / depths[1];
                             normalDir += model.Normals[model.TriangleIndices[i + 2].normalIdx] * weights.z / depths[2];
                             normalDir *= depth; // because of the 1/z interpolation (I don't know what that means)
 
-                            float lightIntensity = glm::dot(glm::normalize(normalDir), glm::normalize(glm::vec3(1, 2, -3)));
-                            lightIntensity = glm::clamp(lightIntensity, 0.05f, 1.0f);
+                            normalDir = normalDir * model.ModelTransform.GetRotationMat();
+                        }
 
-                            renderTarget.ColurBuff[y * renderTarget.Width + x] *= lightIntensity;
-
-                        }*/
-
+						renderTarget.ColurBuff[y * renderTarget.Width + x] = scene.Shader.GetPixelColor(model, texCoord, normalDir);
                         renderTarget.DepthBuffer[y * renderTarget.Width + x] = depth;
                     }
 
